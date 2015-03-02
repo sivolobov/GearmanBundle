@@ -27,6 +27,13 @@ use Mmoreram\GearmanBundle\Service\Abstracts\AbstractGearmanService;
 class GearmanClient extends AbstractGearmanService
 {
     /**
+     * @var int
+     *
+     * Set socket I/O activity timeout
+     */
+    protected $timeout = -1;
+
+    /**
      * @var GearmanCallbacksDispatcher
      *
      * Gearman callbacks dispatcher
@@ -74,6 +81,24 @@ class GearmanClient extends AbstractGearmanService
      * Return code from internal client.
      */
     protected $returnCode;
+
+    /**
+     * Set socket I/O activity timeout
+     *
+     * @param $timeout
+     */
+    public function setTimeout($timeout)
+    {
+        $this->timeout = $timeout;
+    }
+
+    /**
+     * Clear socket I/O activity timeout
+     */
+    public function clearTimeout()
+    {
+        $this->setTimeout(-1);
+    }
 
     /**
      * Init tasks structure
@@ -230,6 +255,8 @@ class GearmanClient extends AbstractGearmanService
     protected function doEnqueue(array $worker, $params, $method, $unique)
     {
         $gearmanClient = new \GearmanClient();
+        $gearmanClient->setTimeout($this->timeout);
+
         $this->assignServers($gearmanClient);
 
         $result = $gearmanClient->$method($worker['job']['realCallableName'], $params, $unique);
@@ -427,6 +454,8 @@ class GearmanClient extends AbstractGearmanService
     public function getJobStatus($idJob)
     {
         $gearmanClient = new \GearmanClient();
+        $gearmanClient->setTimeout($this->timeout);
+
         $this->assignServers($gearmanClient);
         $statusData = $gearmanClient->jobStatus($idJob);
 
@@ -643,6 +672,8 @@ class GearmanClient extends AbstractGearmanService
     public function runTasks()
     {
         $gearmanClient = new \GearmanClient();
+        $gearmanClient->setTimeout($this->timeout);
+
         $this->assignServers($gearmanClient);
 
         if ($this->settings['callbacks']) {
